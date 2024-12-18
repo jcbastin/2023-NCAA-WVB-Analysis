@@ -1,0 +1,265 @@
+---
+title: "NCAA 2023 WVB Analysis"
+author: "Joshua Bastin"
+date: "2024-1-23"
+output: pdf_document
+---
+
+# Analyzing the most 'Clutch' players of the 2023 NCAA Women's Volleyball Tournament
+```{r}
+# Load necessary libraries for data manipulation, visualization, and table formatting
+library(remotes)     # For remote package installation
+library(tidyverse)   # Includes dplyr, ggplot2, and other tidyverse tools
+library(datavolley)  # For handling volleyball data
+library(volleyR)     # Additional volleyball analysis tools
+library(knitr)       # For dynamic report generation
+library(kableExtra)  # For enhanced table styling and rendering
+```
+
+```{r}
+# Load DataVolley (.dvw) files and combine play-by-play data into one dataframe
+dvw_files <- list.files(
+  path = "/Users/joshuabastin/Dropbox/Mac/Downloads/Personal Projects/Vball Project/data",  
+  pattern = "*.dvw",           
+  full.names = TRUE            
+)
+
+dvw_data <- map(dvw_files, ~read_dv(.x))  # Read all .dvw files into a list
+all_plays <- map(seq_along(dvw_data), ~pluck(dvw_data, .x, "plays")) %>% list_rbind()  # Extract and bind plays data
+```
+
+## Initializing team logos for visualization purposes
+```{r}
+# Create a dataframe of team names and corresponding logo URLs
+# This will be used to display team logos in the final tables
+team_logos <- data.frame(
+  team = c("University of Oregon", "University of Tennessee", 
+           "Creighton University", "University of Texas at Austin","University of Wisconsin-Madison",
+           "University of Nebraska-Lincoln","Georgia Institute Of Technology","Stanford University","Pennsylvania State University","University of Kansas","University of Pittsburgh","University of Arkansas","Western Michigan University","Pepperdine University","University of California, Santa Barbara","University of Louisville","University of Minnesota","Arizona State University"
+           ),  
+  logo_url = c("https://fanapeel.com/wp-content/uploads/logo_-university-of-oregon-ducks-yellow-o-green-outline.png", "https://1000logos.net/wp-content/uploads/2021/07/Tennessee-Volunteers-logo.png", "https://upload.wikimedia.org/wikipedia/en/thumb/6/6f/Creighton_Bluejays_logo.svg/1200px-Creighton_Bluejays_logo.svg.png","https://texassports.com/images/logos/site/site.png","https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Wisconsin_Badgers_logo.svg/2171px-Wisconsin_Badgers_logo.svg.png","https://1000logos.net/wp-content/uploads/2021/07/Nebraska-Cornhuskers-logo.png","https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Georgia_Tech_Yellow_Jackets_logo.svg/1024px-Georgia_Tech_Yellow_Jackets_logo.svg.png","https://banner2.cleanpng.com/20180607/att/kisspng-stanford-cardinal-football-stanford-university-nca-match-day-5b19102c94b100.2516388815283691966091.jpg","https://upload.wikimedia.org/wikipedia/en/thumb/3/3a/Penn_State_Nittany_Lions_logo.svg/1200px-Penn_State_Nittany_Lions_logo.svg.png","https://upload.wikimedia.org/wikipedia/commons/9/90/Kansas_Jayhawks_1946_logo.svg","https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Pitt_Panthers_wordmark.svg/1200px-Pitt_Panthers_wordmark.svg.png","https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Arkansas_Razorbacks_logo.svg/2560px-Arkansas_Razorbacks_logo.svg.png","https://cdn.freebiesupply.com/logos/large/2x/wmu-broncos-logo-png-transparent.png","https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Pepperdine_Waves_logo.svg/1200px-Pepperdine_Waves_logo.svg.png","https://upload.wikimedia.org/wikipedia/en/thumb/a/a8/UC_Santa_Barbara_Gauchos_logo.svg/1200px-UC_Santa_Barbara_Gauchos_logo.svg.png","https://upload.wikimedia.org/wikipedia/en/thumb/5/59/Louisville_Cardinals_logo.svg/1200px-Louisville_Cardinals_logo.svg.png","https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Minnesota_Golden_Gophers_logo.svg/2560px-Minnesota_Golden_Gophers_logo.svg.png","https://1000logos.net/wp-content/uploads/2021/06/Arizona-State-Sun-Devils-logo.png")
+)
+```
+
+## Filtering for Most Clutch Attackers
+```{r}
+# Filter for "clutch time" attacks (set 5 or late close-score scenarios)
+# Group by player and team to calculate performance metrics:
+# - kill percentage (killpct), error percentage (errpct), and hitting efficiency (hiteff)
+# Include only players with at least 15 attack attempts
+attacker_stats <- all_plays %>%
+  filter(set_number == 5 | 
+         (abs(home_score_start_of_point - visiting_score_start_of_point) <= 2 &
+          home_score_start_of_point >= 17 & visiting_score_start_of_point >= 17)) %>%
+  filter(skill == "Attack") %>%
+  group_by(player_name, team) %>%
+  summarise(
+    attempts = n(),  
+    kill_pct = sum(evaluation_code == "#") / n(),  
+    error_pct = sum(evaluation_code %in% c("=", "/")) / n(),  
+    .groups = 'drop'
+  ) %>%
+  mutate(hitting_eff = kill_pct - error_pct) %>%
+  filter(attempts >= 15) %>%
+  arrange(desc(hitting_eff)) %>%
+  left_join(team_logos, by = "team")
+
+# Select top 10 players and add ranks
+top_attackers_table <- attacker_stats[1:10,]
+top_attackers_table$Rank <- c(1, 2, 3, 4, 5, 6, 7, 8, 8, 10)
+```
+
+## Filtering for Most Clutch Blockers
+```{r}
+# Filter for "clutch time" blocks and calculate total blocks for each player
+blocker_stats <- all_plays %>%
+  filter(set_number == 5 | 
+         (abs(home_score_start_of_point - visiting_score_start_of_point) <= 2 &
+          home_score_start_of_point >= 17 & visiting_score_start_of_point >= 17)) %>%
+  filter(skill == "Block") %>%
+  group_by(player_name, team) %>%
+  summarise(total_blocks = sum(evaluation_code == "#"), .groups = 'drop') %>%
+  arrange(desc(total_blocks)) %>%
+  left_join(team_logos, by = "team")
+
+# Select top 11 blockers and add ranks
+top_blockers_table <- blocker_stats[1:11,]
+top_blockers_table$Rank <- c(1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3)
+```
+
+## Filtering for Most Clutch Servers
+```{r}
+# Filter for "clutch time" serves and calculate total aces for each player
+server_stats <- all_plays %>%
+  filter(set_number == 5 | 
+         (abs(home_score_start_of_point - visiting_score_start_of_point) <= 2 &
+          home_score_start_of_point >= 17 & visiting_score_start_of_point >= 17)) %>%
+  filter(skill == "Serve") %>%
+  group_by(player_name, team) %>%
+  summarise(total_aces = sum(evaluation_code == "#"), .groups = 'drop') %>%
+  arrange(desc(total_aces)) %>%
+  left_join(team_logos, by = "team")
+
+# Select top 8 servers and add ranks
+top_servers_table <- server_stats[1:8,]
+top_servers_table$Rank <- c(1, 2, 2, 2, 2, 2, 2, 2)
+```
+
+## Interesting Finding Stat
+```{r}
+# Find the player with the lowest hitting efficiency in "clutch time"
+least_efficient_attacker <- attacker_stats %>%
+  arrange(desc(hitting_eff)) %>%
+  tail(1)
+ # Select the last row (least efficient attacker)
+```
+
+
+## Creating the table for Hitting Efficiency Data
+```{r}
+# Create a styled table for the top clutch attackers
+top_attackers_table %>%
+  mutate(
+    Logo = ifelse(!is.na(logo_url), 
+                  paste0("<img src='", logo_url, "' style='height:20px; vertical-align:middle;'/>"), 
+                  "")
+  ) %>%
+  select(Rank, player_name, team, Logo, attempts, kill_pct, error_pct, hitting_eff) %>%
+  kbl(
+    caption = "<span style='color: #333333; font-weight: bold; font-size: 20px;'>Most Clutch Attackers</span>
+               <br><span style='font-size: 16px; color: #555555;'>2023 NCAA Women's Volleyball Tournament</span>
+               <br><span style='font-size: 12px; color: #777777;'>Minimum 15 Attempts</span>", 
+    col.names = c("Rank", "Player Name", "School", "", "Attempts", "Kill Pct", "Error Pct", "Hit Eff"),  
+    align = c("c", "l", "l", "c", "c", "c", "c", "c"),  
+    escape = FALSE,
+    digits = 3
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    font_size = 12
+  ) %>%
+  column_spec(4, width = "50px") %>%  
+  column_spec(1:8, color = "black") %>% 
+  row_spec(0, bold = TRUE, background = "#f0f0f0", color = "black") %>%  
+  footnote(
+    general = "<span style='color: black;'>Data source: Volleymetrics</span>", 
+    general_title = "",
+    escape = FALSE 
+  )
+```
+
+
+## Interesting Finding Table
+```{r}
+# Create a table for the least efficient attacker
+least_efficient_attacker %>%
+  mutate(
+    Logo = ifelse(!is.na(logo_url), 
+                  paste0("<img src='", logo_url, "' style='height:20px; vertical-align:middle;'/>"), 
+                  "")
+  ) %>%
+  mutate(Rank = 32) %>%
+  select(Rank, player_name, team, Logo, attempts, kill_pct, error_pct, hitting_eff) %>%
+  kbl(
+    caption = "<span style='color: #333333; font-weight: bold; font-size: 20px;'>Least Efficient Attacker in 'Clutch Time'</span>
+               <br><span style='font-size: 16px; color: #555555;'>2023 NCAA Women's Volleyball Tournament</span>
+               <br><span style='font-size: 12px; color: #777777;'>Minimum 15 Attempts</span>", 
+    col.names = c("Rank", "Player Name", "School", "", "Attempts", "Kill Pct", "Error Pct", "Hit Eff"),
+    align = c("c", "l", "l", "c", "c", "c", "c", "c"),  
+    escape = FALSE, 
+    digits = 3
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    font_size = 12
+  ) %>%
+  column_spec(4, width = "50px") %>%  
+  column_spec(1:8, color = "black") %>%  
+  row_spec(0, bold = TRUE, background = "#f0f0f0", color = "black") %>%  
+  footnote(
+    general = "<span style='color: black;'>Data source: Volleymetrics</span>", 
+    general_title = "",
+    escape = FALSE 
+  )
+```
+
+
+
+## Creating the Blockers Table
+```{r}
+# Create a styled table for the top clutch blockers
+top_blockers_table %>%
+  mutate(
+    Logo = ifelse(!is.na(logo_url), 
+                  paste0("<img src='", logo_url, "' style='height:20px; vertical-align:middle;'/>"), 
+                  "")
+  ) %>%
+  select(Rank, player_name, team, Logo, total_blocks) %>%
+  kbl(
+    caption = "<span style='color: #333333; font-weight: bold; font-size: 20px;'>Most Clutch Blockers</span>
+               <br><span style='font-size: 16px; color: #555555;'>2023 NCAA Women's Volleyball Tournament</span>
+               <br><span style='font-size: 12px; color: #777777;'>Based on Total Blocks in 'Clutch Time'</span>",
+    col.names = c("Rank", "Player Name", "School", "", "Blocks"),
+    align = c("c", "l", "l", "c", "c"),  
+    escape = FALSE,  
+    digits = 0
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    font_size = 12
+  ) %>%
+  column_spec(4, width = "50px") %>%  
+  column_spec(1:5, color = "black") %>%  
+  row_spec(0, bold = TRUE, background = "#f0f0f0", color = "black") %>%  
+  footnote(
+    general = "<span style='color: black;'>Data source: Volleymetrics</span>", 
+    general_title = "",
+    escape = FALSE 
+  )
+```
+
+
+## Creating the Serve Table
+```{r}
+# Create a styled table for the top clutch servers
+top_servers_table %>%
+  mutate(
+    Logo = ifelse(!is.na(logo_url), 
+                  paste0("<img src='", logo_url, "' style='height:20px; vertical-align:middle;'/>"), 
+                  "")
+  ) %>%
+  select(Rank, player_name, team, Logo, total_aces) %>%
+  kbl(
+    caption = "<span style='color: #333333; font-weight: bold; font-size: 20px;'>Most Clutch Servers</span>
+               <br><span style='font-size: 16px; color: #555555;'>2023 NCAA Women's Volleyball Tournament</span>
+               <br><span style='font-size: 12px; color: #777777;'>Based on Total Aces in 'Clutch Time'</span>",
+    col.names = c("Rank", "Player Name", "School", "", "Aces"),
+    align = c("c", "l", "l", "c", "c"),  
+    escape = FALSE, 
+    digits = 0
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    font_size = 12
+  ) %>%
+  column_spec(4, width = "50px") %>%  
+  column_spec(1:5, color = "black") %>%  
+  row_spec(0, bold = TRUE, background = "#f0f0f0", color = "black") %>%  
+  footnote(
+    general = "<span style='color: black;'>Data source: Volleymetrics</span>", 
+    general_title = "",
+    escape = FALSE 
+  )
+```
+
+
+
+
