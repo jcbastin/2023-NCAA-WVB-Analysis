@@ -48,7 +48,7 @@ Each metric is carefully defined and measured using detailed **play-by-play data
 ### 1. Attacking  
 Attacking occurs when a player attempts to **hit the ball to the opponent’s side** to score a point. The performance metric used to evaluate the most clutch attackers is **hitting efficiency**, calculated as:  
 
-$\frac{\text{Kills} - \text{Errors}}{\text{Total Attempts}}$.
+$\frac{\text{Kills} - \text{Errors}}{\text{Total Attempts}}$
 
 - **Kill**: A successful attack that scores a point.  
 - **Error**: An unforced mistake, such as hitting the ball into the net or out of bounds.  
