@@ -129,13 +129,15 @@ The table below highlights the **top servers** based on total aces during clutch
 
 To provide additional context for this analysis, the final **Top 15 NCAA Rankings** and the tournament bracket, including a zoomed-in view of the **Final Four**, are included below:
 
-![Top Half of Tournament Bracket](./images/Bracket%20Top%20Haf.png)  
+![Top Half of Tournament Bracket](./images/Bracket%20Top%20Half.png)  
 ![Final Four Bracket](./images/Bracket%20Final%204.png)  
 ![Bottom Half of Tournament Bracket](./images/Bracket%20Bottom%20Half.png)  
 
 ---
 
 ![Final Top 15 Rankings](./images/Final%20Top%2015.png)  
+
+---
 
 As shown, **Texas** was the eventual National Champion, with **Nebraska** finishing as the runner-up. These two teams consistently featured players in the **Clutch Player Analysis**, particularly in the categories of **attacking** and **blocking**.  
 
