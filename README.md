@@ -132,6 +132,9 @@ To provide additional context for this analysis, the final **Top 15 NCAA Ranking
 ![Top Half of Tournament Bracket](./images/Bracket%20Top%20Half.png)  
 ![Final Four Bracket](./images/Bracket%20Final%204.png)  
 ![Bottom Half of Tournament Bracket](./images/Bracket%20Bottom%20Half.png)  
+
+---
+
 ![Final Top 15 Rankings](./images/Final%20Top%2015.png)  
 
 As shown, **Texas** was the eventual National Champion, with **Nebraska** finishing as the runner-up. These two teams consistently featured players in the **Clutch Player Analysis**, particularly in the categories of **attacking** and **blocking**.  
