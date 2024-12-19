@@ -125,6 +125,27 @@ The table below highlights the **top servers** based on total aces during clutch
 
 ---
 
+### Tournament Results and Rankings  
+
+To provide additional context for this analysis, the final **Top 15 NCAA Rankings** and the tournament bracket, including a zoomed-in view of the **Final Four**, are included below:
+
+![Top Half of Tournament Bracket](./images/Bracket%20Top%20Half.png)  
+![Bottom Half of Tournament Bracket](./images/Bracket%20Bottom%20Half.png)  
+![Final Four Bracket](./images/Bracket%20Final%204.png)  
+![Final Top 15 Rankings](./images/Final%20Top%2015.png)  
+
+As shown, **Texas** was the eventual National Champion, with **Nebraska** finishing as the runner-up. These two teams consistently featured players in the **Clutch Player Analysis**, particularly in the categories of **attacking** and **blocking**.  
+
+#### Insights:  
+- **Texas and Nebraska** players appeared frequently in the clutch-time analysis. This is notable, as both teams performed exceptionally well throughout the tournament.  
+- Metrics such as **hitting efficiency** remain valuable across different contexts, as they provide a standardized way to evaluate performance under pressure, regardless of the number of opportunities.  
+- These findings suggest that identifying clutch-time performers is an important consideration for recruiting and team-building. While raw athletic ability is critical, so is the ability to perform consistently in high-pressure situations against strong opponents.
+
+#### Potential Applications for Coaches:  
+This analysis could be a useful tool for university athletic departments and coaching staff to identify and recruit players who excel under pressure. Teams like **Texas** and **Nebraska** demonstrate that clutch-time performance correlates with tournament success. Coaches can leverage these insights to build squads capable of thriving in high-stakes matches, ultimately improving their chances of advancing deep into the tournament.
+
+---
+
 ## Replicating This Analysis  
 
 To replicate this project, follow these steps:  
